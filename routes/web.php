@@ -18,21 +18,19 @@ use App\Http\Controllers\ZoomController;
 */
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('login');
 });
 
-Route::get('/zoom', [ZoomController::class, 'index'])->name('zoom.index');
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [ZoomController::class, 'dashboard'])->name('dashboard');
+    Route::get('/pengajuan', [ZoomController::class, 'index'])->name('zoom.index');
+    Route::post('/store', [ZoomController::class, 'store'])->name('zoom.store');
+    Route::delete('/meeting/{id}', [ZoomController::class, 'destroy'])->name('zoom.destroy');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
