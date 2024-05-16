@@ -1,13 +1,12 @@
 <script setup lang="ts">
+import { Head } from "@inertiajs/vue3";
 import Overview from "@/Components/Overview.vue";
-// import DateRangePicker from '@/Components/DateRangePicker.vue'
+import Upcoming from "@/Components/Upcoming.vue";
+import Previous from "@/Components/Previous.vue";
+import Live from "@/Components/Live.vue";
 import MainNav from "@/Components/MainNav.vue";
-import RecentSales from "@/Components/RecentSales.vue";
-import Search from "@/Components/Search.vue";
-// import TeamSwitcher from '@/Components/TeamSwitcher.vue'
+import RecentRequest from "@/Components/RecentRequest.vue";
 import UserNav from "@/Components/UserNav.vue";
-import { ScrollArea } from "@/Components/ui/scroll-area";
-import { Button } from "@/lib/registry/new-york/ui/button";
 import {
     Card,
     CardContent,
@@ -21,7 +20,6 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/lib/registry/new-york/ui/tabs";
-import { all } from "axios";
 
 const props = defineProps({
     all_meetings: {
@@ -40,30 +38,21 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    meetings: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 </script>
 
 <template>
-    <div class="grid">
-        <!-- <VPImage
-            alt="Dashboard"
-            width="1280"
-            height="1214"
-            class="block"
-            :image="{
-                dark: '/examples/dashboard-dark.png',
-                light: '/examples/dashboard-light.png',
-            }"
-        /> -->
-    </div>
+    <Head title="Dashboard" />
 
     <div class="flex-col md:flex">
         <div class="border-b">
             <div class="flex h-16 items-center px-4">
-                <!-- <TeamSwitcher /> -->
                 <MainNav class="mx-6" />
                 <div class="ml-auto flex items-center space-x-4">
-                    <Search />
                     <UserNav />
                 </div>
             </div>
@@ -79,9 +68,9 @@ const props = defineProps({
             <Tabs default-value="overview" class="space-y-4">
                 <TabsList>
                     <TabsTrigger value="overview"> Overview </TabsTrigger>
-                    <TabsTrigger value="analytics"> Upcoming </TabsTrigger>
-                    <TabsTrigger value="reports"> Previous </TabsTrigger>
-                    <TabsTrigger value="notifications"> Live </TabsTrigger>
+                    <TabsTrigger value="upcoming"> Upcoming </TabsTrigger>
+                    <TabsTrigger value="previous"> Previous </TabsTrigger>
+                    <TabsTrigger value="live"> Live </TabsTrigger>
                 </TabsList>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
@@ -222,18 +211,105 @@ const props = defineProps({
                                 <CardTitle>Overview</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Overview :all_meetings="all_meetings" />
+                                <Overview
+                                    :all_meetings="all_meetings"
+                                    :meetings="meetings as unknown[]"
+                                />
                             </CardContent>
                         </Card>
                         <Card class="lg:col-span-3 h-[60vh] overflow-auto">
                             <CardHeader>
-                                <CardTitle>Recent Sales</CardTitle>
+                                <CardTitle>Pengajuan Terbaru</CardTitle>
                                 <CardDescription>
-                                    You made 265 sales this month.
+                                    <!-- You made 265 sales this month. -->
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <RecentSales />
+                                <RecentRequest :meetings="meetings" />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+                <TabsContent value="upcoming" class="space-y-4 flex flex-col">
+                    <div
+                        class="grid gap-4 md:grid-cols-2 lg:grid-cols-7 flex-grow"
+                    >
+                        <Card class="lg:col-span-4 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Upcoming Meetings</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Upcoming
+                                    :upcoming_meetings="upcoming_meetings"
+                                    :meetings="meetings as unknown[]"
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card class="lg:col-span-3 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Pengajuan Terbaru</CardTitle>
+                                <CardDescription>
+                                    <!-- You made 265 sales this month. -->
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <RecentRequest :meetings="meetings" />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+                <TabsContent value="previous" class="space-y-4 flex flex-col">
+                    <div
+                        class="grid gap-4 md:grid-cols-2 lg:grid-cols-7 flex-grow"
+                    >
+                        <Card class="lg:col-span-4 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Previous Meetings</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Previous
+                                    :previous_meetings="previous_meetings"
+                                    :meetings="meetings as unknown[]"
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card class="lg:col-span-3 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Pengajuan Terbaru</CardTitle>
+                                <CardDescription>
+                                    <!-- You made 265 sales this month. -->
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <RecentRequest :meetings="meetings" />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+                <TabsContent value="live" class="space-y-4 flex flex-col">
+                    <div
+                        class="grid gap-4 md:grid-cols-2 lg:grid-cols-7 flex-grow"
+                    >
+                        <Card class="lg:col-span-4 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Live Meetings</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Live
+                                    :live_meetings="live_meetings"
+                                    :meetings="meetings as unknown[]"
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card class="lg:col-span-3 h-[60vh] overflow-auto">
+                            <CardHeader>
+                                <CardTitle>Pengajuan Terbaru</CardTitle>
+                                <CardDescription>
+                                    <!-- You made 265 sales this month. -->
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <RecentRequest :meetings="meetings" />
                             </CardContent>
                         </Card>
                     </div>

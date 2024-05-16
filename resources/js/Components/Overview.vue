@@ -30,6 +30,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    meetings: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const formatDate = (date: string): string => {
@@ -39,13 +43,19 @@ const formatTime = (duration: number): number => {
     return duration / 60;
 };
 const currentPage = ref(1);
-const itemsPerPage = ref(6);
+const itemsPerPage = ref(10);
 
 const paginatedMeetings = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage.value;
     const end = start + itemsPerPage.value;
     return props.all_meetings.data.meetings.slice(start, end);
 });
+
+const findMeeting = (id: string) => {
+    return props.meetings.find(
+        (meeting: any) => meeting.meeting_id === id.toString()
+    );
+};
 </script>
 
 <template>
@@ -69,10 +79,41 @@ const paginatedMeetings = computed(() => {
                             Jam
                         </p>
                     </div>
+                    <Separator
+                        v-if="findMeeting(meeting.id)"
+                        orientation="vertical"
+                    />
+                    <div v-if="findMeeting(meeting.id)">
+                        <p class="text-sm text-muted-foreground">
+                            Jumlah Peserta :
+                            {{
+                                (findMeeting(meeting.id) as any).jumlah_peserta
+                            }}
+                        </p>
+                    </div>
+                    <Separator
+                        v-if="findMeeting(meeting.id)"
+                        orientation="vertical"
+                    />
+                    <div v-if="findMeeting(meeting.id)">
+                        <p
+                            v-if="findMeeting(meeting.id)"
+                            class="text-sm text-muted-foreground"
+                        >
+                            Fungsi/Bagian :
+                            {{ (findMeeting(meeting.id) as any).bidang }}
+                        </p>
+                    </div>
                 </div>
             </div>
             <div class="ml-auto text-sm font-medium">
-                <template v-if="new Date(meeting.start_time) > new Date()">
+                <template
+                    v-if="
+                        new Date(
+                            new Date(meeting.start_time).setHours(0, 0, 0, 0)
+                        ) >= new Date(new Date().setHours(0, 0, 0, 0))
+                    "
+                >
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger as-child>
@@ -153,6 +194,7 @@ const paginatedMeetings = computed(() => {
         </div>
         <div class="ml-4">
             <Pagination
+                v-if="all_meetings.data.meetings.length > 6"
                 v-slot="{ page }"
                 :total="all_meetings.data.meetings.length"
                 :items-per-page="itemsPerPage"

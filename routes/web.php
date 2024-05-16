@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [ZoomController::class, 'dashboard'])->name('dashboard');
-    Route::get('/pengajuan', [ZoomController::class, 'index'])->name('zoom.index');
+    Route::get('/pengajuan/{id?}', [ZoomController::class, 'index'])->name('zoom.index');
     Route::post('/store', [ZoomController::class, 'store'])->name('zoom.store');
     Route::delete('/meeting/{id}', [ZoomController::class, 'destroy'])->name('zoom.destroy');
 

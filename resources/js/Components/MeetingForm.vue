@@ -20,6 +20,7 @@ import {
 } from "@/Components/ui/select";
 import { CalendarIcon } from "@radix-icons/vue";
 import type { DateRange } from "radix-vue";
+import { Label } from "@/Components/ui/label";
 import { RangeCalendar } from "@/Components/ui/range-calendar";
 import { Button } from "@/Components/ui/button";
 import {
@@ -33,8 +34,11 @@ const df = new DateFormatter("id-ID", {
     dateStyle: "long",
 });
 
+const placeholder = ref();
+
 const value = ref({
-    start: today("Asia/Singapore"),
+    start: null,
+    end: null,
 }) as any;
 
 const currentDate = ref(today(getLocalTimeZone())) as any;
@@ -134,6 +138,7 @@ function submit() {
                     </PopoverTrigger>
                     <PopoverContent class="w-auto p-0">
                         <RangeCalendar
+                            v-model:placeholder="placeholder"
                             v-model="value"
                             initial-focus
                             :number-of-months="1"
@@ -219,6 +224,7 @@ function submit() {
                     type="text"
                     placeholder="Password"
                     class="flex-grow"
+                    maxlength="10"
                 />
             </div>
 

@@ -47,9 +47,11 @@ const userInitials = computed(() => {
         <DropdownMenuContent class="w-56" align="end">
             <DropdownMenuLabel class="font-normal flex">
                 <div class="flex flex-col space-y-1">
-                    <p class="text-sm font-medium leading-none">shadcn</p>
+                    <p class="text-sm font-medium leading-none">
+                        {{ $page.props.auth.user.name }}
+                    </p>
                     <p class="text-xs leading-none text-muted-foreground">
-                        m@example.com
+                        {{ $page.props.auth.user.email }}
                     </p>
                 </div>
             </DropdownMenuLabel>

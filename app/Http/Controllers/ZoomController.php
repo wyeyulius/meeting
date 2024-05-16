@@ -19,10 +19,13 @@ class ZoomController extends Controller
         $previous_meetings = Zoom::getPreviousMeeting();
         $live_meetings = Zoom::getLiveMeeting();
         $all_meetings = Zoom::getAllMeeting();
+
+        $meetings = ZoomModel::with('user')->orderBy('created_at', 'desc')->get();
         
         // dd($all_meetings, $upcoming_meetings, $previous_meetings, $live_meetings);
     
         return Inertia::render('Dashboard', [
+            'meetings' => $meetings,
             'all_meetings' => $all_meetings,
             'upcoming_meetings' => $upcoming_meetings,
             'previous_meetings' => $previous_meetings,
@@ -33,11 +36,20 @@ class ZoomController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(String $id = null)
     {
         $user_meetings = ZoomModel::where('user_id', auth()->user()->id)->get();
+
+        if ($id !== null) {
+            $meeting = Zoom::getMeeting($id);
+            $invitation = Zoom::getMeetingInvitation($id);
+            // dd($meeting, $invitation);
+        }
+
         return Inertia::render('Zoom/Index', [
             'user_meetings' => $user_meetings,
+            'meeting' => $meeting ?? null,
+            'invitation' => $invitation ?? null,
         ]);
     }
 
@@ -78,7 +90,7 @@ class ZoomController extends Controller
 
             for ($date = clone $start_date; $date <= $end_date; $date->modify('+1 day')) {
                 $start_time = $date->format('Y-m-d\TH:i:s');
-                $end_time = (clone $date)->modify('+' . $request->duration . ' minutes')->format('Y-m-d\TH:i:s');
+                $end_time = (clone $date)->modify('+' . $request->duration * 60 . ' minutes')->format('Y-m-d\TH:i:s');
 
                 foreach ($upcoming_meetings['data']['meetings'] as $meeting) {
                     $meeting_start_time = new \DateTime($meeting['start_time'], new \DateTimeZone('UTC'));
@@ -101,7 +113,7 @@ class ZoomController extends Controller
             $start_time->setTimezone(new \DateTimeZone('UTC'));
             $start_time = $start_time->format('Y-m-d\TH:i:s');
 
-            $end_time = new \DateTime($start_time . ' + ' . $request->duration . ' minutes', new \DateTimeZone('UTC'));
+            $end_time = new \DateTime($start_time . ' + ' . $request->duration * 60 . ' minutes', new \DateTimeZone('UTC'));
             $end_time = $end_time->format('Y-m-d\TH:i:s');
 
             $upcoming_meetings = Zoom::getUpcomingMeeting();
@@ -154,7 +166,7 @@ class ZoomController extends Controller
                     'waiting_room' => true, // if you want to use waiting room for participants set true otherwise set false
                     'audio' => 'both', // values are 'both', 'telephony', 'voip'. default is both.
                     'auto_recording' => 'none', // values are 'none', 'local', 'cloud'. default is none.
-                    'approval_type' => 1, // 0 => Automatically Approve, 1 => Manually Approve, 2 => No Registration Required
+                    'approval_type' => 2, // 0 => Automatically Approve, 1 => Manually Approve, 2 => No Registration Required
                 ],
             
             ]);
@@ -179,7 +191,7 @@ class ZoomController extends Controller
                     'waiting_room' => true, // if you want to use waiting room for participants set true otherwise set false
                     'audio' => 'both', // values are 'both', 'telephony', 'voip'. default is both.
                     'auto_recording' => 'none', // values are 'none', 'local', 'cloud'. default is none.
-                    'approval_type' => 1, // 0 => Automatically Approve, 1 => Manually Approve, 2 => No Registration Required
+                    'approval_type' => 2, // 0 => Automatically Approve, 1 => Manually Approve, 2 => No Registration Required
                 ],
             
             ]);
@@ -192,6 +204,11 @@ class ZoomController extends Controller
             $meeting->jumlah_peserta = $request->participant;
             $meeting->bidang = $request->bidang;
             $meeting->co_host = $request->host;
+            $meeting->start_date = $start_date;
+            $meeting->end_date = $end_date;
+            $meeting->time = $request->time;
+            $meeting->period = $request->period;
+            $meeting->duration = $request->duration;
             $meeting->save();
             return Redirect::route('zoom.index')->with('success', 'Meeting telah dibuat');
         } else {

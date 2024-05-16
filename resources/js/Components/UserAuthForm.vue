@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from "vue";
+import { Head, Link, useForm } from "@inertiajs/vue3";
 
-import { cn } from '@/lib/utils'
-import { Button } from '@/lib/registry/new-york/ui/button'
-import { Input } from '@/lib/registry/new-york/ui/input'
-import { Label } from '@/lib/registry/new-york/ui/label'
-import InputError from '@/Components/InputError.vue';
-import Checkbox from '@/Components/Checkbox.vue';
+import { cn } from "@/lib/utils";
+import { Button } from "@/lib/registry/new-york/ui/button";
+import { Input } from "@/lib/registry/new-york/ui/input";
+import { Label } from "@/lib/registry/new-york/ui/label";
+import InputError from "@/Components/InputError.vue";
+import Checkbox from "@/Components/Checkbox.vue";
 
-const isLoading = ref(false)
+const isLoading = ref(false);
 async function onSubmit(event: Event) {
-    event.preventDefault()
-    isLoading.value = true
+    event.preventDefault();
+    isLoading.value = true;
 
     setTimeout(() => {
-        isLoading.value = false
-    }, 3000)
+        isLoading.value = false;
+    }, 3000);
 }
 
 defineProps<{
@@ -25,15 +25,15 @@ defineProps<{
 }>();
 
 const form = useForm({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     remember: false,
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    form.post(route("login"), {
         onFinish: () => {
-            form.reset('password');
+            form.reset("password");
         },
     });
 };
@@ -44,23 +44,39 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="grid gap-2">
                 <div class="grid gap-1">
-                    <Label class="sr-only" for="email">
-                        Email
-                    </Label>
-                    <Input id="email" required v-model="form.email" placeholder="name@example.com" type="email"
-                        auto-capitalize="none" auto-complete="email" auto-correct="off" :disabled="isLoading" />
+                    <Label class="sr-only" for="email"> Email </Label>
+                    <Input
+                        id="email"
+                        required
+                        v-model="form.email"
+                        placeholder="name@example.com"
+                        type="email"
+                        auto-capitalize="none"
+                        auto-complete="email"
+                        auto-correct="off"
+                        :disabled="isLoading"
+                    />
                     <InputError class="mt-2" :message="form.errors.email" />
                 </div>
                 <div class="grid gap-1">
-                    <Label class="sr-only" for="password">
-                        Password
-                    </Label>
-                    <Input id="password" required v-model="form.password" placeholder="*******" type="password"
-                        auto-complete="current-passowrd" auto-correct="off" :disabled="isLoading" />
+                    <Label class="sr-only" for="password"> Password </Label>
+                    <Input
+                        id="password"
+                        required
+                        v-model="form.password"
+                        placeholder="*******"
+                        type="password"
+                        auto-complete="current-passowrd"
+                        auto-correct="off"
+                        :disabled="isLoading"
+                    />
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
                 <Button :disabled="isLoading">
-                    <LucideSpinner v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
+                    <LucideSpinner
+                        v-if="isLoading"
+                        class="mr-2 h-4 w-4 animate-spin"
+                    />
                     Log In
                 </Button>
             </div>
@@ -73,9 +89,12 @@ const submit = () => {
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <Link v-if="canResetPassword" :href="route('password.request')"
-                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Forgot your password?
+                <Link
+                    v-if="canResetPassword"
+                    :href="route('password.request')"
+                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                    Forgot your password?
                 </Link>
             </div>
         </form>

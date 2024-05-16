@@ -9,6 +9,8 @@ import {
     TableRow,
 } from "@/Components/ui/table";
 import { router } from "@inertiajs/vue3";
+import { useToast } from "@/Components/ui/toast/use-toast";
+import { Toaster } from "@/Components/ui/toast";
 
 const props = defineProps({
     user_meetings: {
@@ -17,12 +19,20 @@ const props = defineProps({
     },
 });
 
+const { toast } = useToast();
+
 function edit_meeting(id: number) {
-    console.log("Edit meeting with id: ", id);
+    toast({
+        title: "Pengumuman",
+        description: "Mohon maaf, fitur ini masih dalam pengembangan.",
+    });
 }
 
 function view_meeting(id: number) {
-    console.log("Edit meeting with id: ", id);
+    router.get(`/pengajuan/` + id, {
+        preserveState: true,
+        preserveScroll: true,
+    });
 }
 
 function delete_meeting(id: number) {
@@ -36,14 +46,19 @@ function delete_meeting(id: number) {
 </script>
 
 <template>
+    <Toaster />
     <Table>
         <TableCaption>Daftar Pengajuan Meeting Anda.</TableCaption>
         <TableHeader>
             <TableRow>
                 <TableHead class="w-[100px]">No</TableHead>
                 <TableHead>Topik/Judul Meeting</TableHead>
+                <TableHead>Tanggal Mulai</TableHead>
+                <TableHead>Tanggal Selesai</TableHead>
+                <TableHead>Waktu</TableHead>
+                <TableHead>Durasi</TableHead>
                 <TableHead>Jumlah Peserta</TableHead>
-                <TableHead>Rumpun Fungsi/Bagian</TableHead>
+                <TableHead>Fungsi/Bagian</TableHead>
                 <TableHead>Petugas Co-Host</TableHead>
                 <TableHead class="text-center">Aksi</TableHead>
             </TableRow>
@@ -52,6 +67,14 @@ function delete_meeting(id: number) {
             <TableRow v-for="(meeting, index) in user_meetings" :key="index">
                 <TableCell> {{ index + 1 }} </TableCell>
                 <TableCell>{{ meeting.topic }}</TableCell>
+                <TableCell>{{ meeting.start_date }}</TableCell>
+                <TableCell>{{
+                    meeting.end_date ? meeting.end_date : meeting.start_date
+                }}</TableCell>
+                <TableCell>{{
+                    meeting.time + " " + meeting.period.toUpperCase()
+                }}</TableCell>
+                <TableCell>{{ meeting.duration }} Jam</TableCell>
                 <TableCell>{{ meeting.jumlah_peserta }}</TableCell>
                 <TableCell>{{ meeting.bidang }}</TableCell>
                 <TableCell>{{ meeting.co_host }}</TableCell>

@@ -19,6 +19,11 @@ return new class extends Migration
             $table->integer('jumlah_peserta');
             $table->string('bidang');
             $table->string('co_host');
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->char('time', 5);
+            $table->char('period', 2);
+            $table->string('duration');
             $table->timestamps();
         });
     }
