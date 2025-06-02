@@ -1,242 +1,223 @@
 <script setup lang="ts">
 import {
-    Pagination,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationLast,
-    PaginationList,
-    PaginationListItem,
-    PaginationNext,
-    PaginationPrev,
-} from "@/Components/ui/pagination";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/Components/ui/tooltip";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog";
+import { Label } from "@/Components/ui/label";
 import { Button } from "@/Components/ui/button";
-import { Separator } from "@/Components/ui/separator";
-import moment from "moment";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { computed } from "vue";
+import FullCalendar from "@fullcalendar/vue3";
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import idLocale from '@fullcalendar/core/locales/id';
+import { CalendarOptions } from '@fullcalendar/core';
+import { format, parseISO } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { id } from "date-fns/locale";
+import { useClipboard } from "@vueuse/core";
+import { useToast } from "@/Components/ui/toast/use-toast";
+import { Toaster } from "@/Components/ui/toast";
+
+const { toast } = useToast();
+
+const { text, isSupported, copy, copied } = useClipboard();
 
 const props = defineProps({
     all_meetings: {
         type: Object,
         default: () => ({}),
     },
-    paginatedMeetings: {
-        type: Array,
-        default: () => [],
-    },
-    meetings: {
-        type: Array,
-        default: () => [],
-    },
+    meetings: Array as () => Meeting[],
 });
 
-const formatDate = (date: string): string => {
-    return moment(date).format("DD-MM-YYYY, h:mm a");
+interface Meeting {
+    id: string;
+    join_url: string;
+    topic: string;
+    start_time: string;
+    duration: number;
+    jumlah_peserta: number;
+    bidang: string;
+    co_host: string;
+    user: {
+        name: string;
+    };
+    // add other properties as needed
+}
+
+const dialogOpen = ref(false);
+const selectedEvent = ref<Meeting | null>(null);
+
+const calendarEvents = computed(() => {
+    const now = new Date();
+    return props.all_meetings.data.meetings.map((meeting: any) => {
+        let eventColor = '';
+        const start = new Date(meeting.start_time);
+        const end = new Date(meeting.start_time);
+        end.setMinutes(end.getMinutes() + meeting.duration); // add the duration to the start time
+
+        if (start > now) {
+            eventColor = '#3a95f0'; // upcoming
+        } else if (end < now) {
+            eventColor = '#f0be41'; // previous
+        } else {
+            eventColor = '#f03a3a'; // live
+        }
+
+        return {
+            id: meeting.id,
+            title: meeting.topic,
+            start: meeting.start_time,
+            extendedProps: meeting,
+            eventColor: eventColor,
+            borderColor: eventColor, // set the border color
+            textColor: eventColor, // set the text color
+        };
+    });
+});
+
+const handleEventClick = (info: any) => {
+    const meeting = findMeeting(info.event.id);
+    selectedEvent.value = { ...info.event.extendedProps, ...meeting };
+    // console.log(selectedEvent.value)  // Get the full meeting data
+    dialogOpen.value = true;
+}
+
+const calendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, interactionPlugin],
+    initialView: 'dayGridMonth',
+    locale: idLocale,
+    headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,dayGridWeek'
+    },
+    events: calendarEvents.value,
+    eventDidMount: function (info) {
+        info.el.setAttribute('title', info.event.title);
+    },
+    eventClick: handleEventClick,
+    eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        meridiem: false
+    },
+    eventMouseEnter: function (info) {
+        info.el.style.cursor = 'pointer';
+    },
+    eventMouseLeave: function (info) {
+        info.el.style.cursor = '';
+    }
 };
+
+const formatDate = (dateString: string) => {
+    const date = parseISO(dateString);
+    const timeZone = "Asia/Singapore";
+    const zonedDate = toZonedTime(date, timeZone);
+    return format(zonedDate, "d MMMM yyyy, hh:mm aa 'WITA'", {
+        locale: id,
+    });
+};
+
 const formatTime = (duration: number): number => {
     return duration / 60;
 };
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
 
-const paginatedMeetings = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    const end = start + itemsPerPage.value;
-    return props.all_meetings.data.meetings.slice(start, end);
-});
-
-const findMeeting = (id: string) => {
-    return props.meetings.find(
+const findMeeting = (id: string): Meeting | undefined => {
+    return props.meetings?.find(
         (meeting: any) => meeting.meeting_id === id.toString()
     );
 };
+
+watch(copied, (newValue) => {
+    if (newValue) {
+        toast({
+            title: "Berhasil",
+            description: "Berhasil menyalin tautan ke Clipboard",
+        });
+    }
+});
 </script>
 
 <template>
-    <div class="space-y-8">
-        <div v-for="meeting in paginatedMeetings" class="flex items-center">
-            <div class="ml-4 space-y-1">
-                <p class="text-sm font-medium leading-none">
-                    {{ meeting.topic }}
-                </p>
-                <div class="flex h-5 items-center space-x-4 text-sm">
-                    <div>
-                        <p class="text-sm text-muted-foreground">
-                            Waktu : {{ formatDate(meeting.start_time) }}
+    <Toaster />
+    <FullCalendar class="h-[55vh] text-sm" :options="calendarOptions" />
+    <Dialog v-model:open="dialogOpen">
+        <DialogContent class="lg:max-w-[800px] sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Detail Meeting</DialogTitle>
+                <!-- <DialogDescription>
+                    Detail meeting yang telah Anda buat.
+                </DialogDescription> -->
+            </DialogHeader>
+            <div class="grid gap-4" v-if="selectedEvent">
+                <div class="flex">
+                    <Label class="min-w-[150px]">Topik Meeting</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent.topic }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Waktu</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ formatDate(selectedEvent.start_time) }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Durasi</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent.duration }} Jam
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Jumlah Peserta</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent?.jumlah_peserta || '-' }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Fungsi/Bidang</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent?.bidang || '-' }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Diajukan oleh</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent?.user?.name || '-' }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Co-Host</Label>
+                    <p class="text-sm font-md min-w-full">
+                        {{ selectedEvent?.co_host || '-' }}
+                    </p>
+                </div>
+                <div class="flex">
+                    <Label class="min-w-[150px]">Link Join</Label>
+                    <div class="text-sm font-md min-w-full flex items-center">
+                        <p>
+                            {{ selectedEvent.join_url }}
                         </p>
-                    </div>
-                    <Separator orientation="vertical" />
-                    <div>
-                        <p class="text-sm text-muted-foreground">
-                            Durasi :
-                            {{ formatTime(meeting.duration) }}
-                            Jam
-                        </p>
-                    </div>
-                    <Separator
-                        v-if="findMeeting(meeting.id)"
-                        orientation="vertical"
-                    />
-                    <div v-if="findMeeting(meeting.id)">
-                        <p class="text-sm text-muted-foreground">
-                            Jumlah Peserta :
-                            {{
-                                (findMeeting(meeting.id) as any).jumlah_peserta
-                            }}
-                        </p>
-                    </div>
-                    <Separator
-                        v-if="findMeeting(meeting.id)"
-                        orientation="vertical"
-                    />
-                    <div v-if="findMeeting(meeting.id)">
-                        <p
-                            v-if="findMeeting(meeting.id)"
-                            class="text-sm text-muted-foreground"
-                        >
-                            Fungsi/Bagian :
-                            {{ (findMeeting(meeting.id) as any).bidang }}
-                        </p>
+                        <button v-if="isSupported" @click="copy(selectedEvent.join_url)" class="focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" stroke="currentColor"
+                                strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                class="h-5 w-5 text-muted-foreground">
+                                <path d="M447.168,134.56c-0.535-1.288-1.318-2.459-2.304-3.445l-128-128c-2.003-1.988-4.709-3.107-7.531-3.115H138.667
+			C132.776,0,128,4.776,128,10.667V64H74.667C68.776,64,64,68.776,64,74.667v426.667C64,507.224,68.776,512,74.667,512h298.667
+			c5.891,0,10.667-4.776,10.667-10.667V448h53.333c5.891,0,10.667-4.776,10.667-10.667V138.667
+			C447.997,137.256,447.714,135.86,447.168,134.56z M320,36.416L411.584,128H320V36.416z M362.667,490.667H85.333V85.333H128v352
+			c0,5.891,4.776,10.667,10.667,10.667h224V490.667z M426.667,426.667H149.333V21.333h149.333v117.333
+			c0,5.891,4.776,10.667,10.667,10.667h117.333V426.667z" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="ml-auto text-sm font-medium">
-                <template
-                    v-if="
-                        new Date(
-                            new Date(meeting.start_time).setHours(0, 0, 0, 0)
-                        ) >= new Date(new Date().setHours(0, 0, 0, 0))
-                    "
-                >
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <a
-                                    :href="meeting.join_url"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="text-blue-500"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="5"
-                                        class="h-5 w-5 text-blue-500"
-                                    >
-                                        <path
-                                            d="M10.0464 14C8.54044 12.4882 8.67609 9.90087 10.3494 8.22108L15.197 3.35462C16.8703 1.67483 19.4476 1.53865 20.9536 3.05046C22.4596 4.56228 22.3239 7.14956 20.6506 8.82935L18.2268 11.2626"
-                                            stroke="blue"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                        <path
-                                            d="M13.9536 10C15.4596 11.5118 15.3239 14.0991 13.6506 15.7789L11.2268 18.2121L8.80299 20.6454C7.12969 22.3252 4.55237 22.4613 3.0464 20.9495C1.54043 19.4377 1.67609 16.8504 3.34939 15.1706L5.77323 12.7373"
-                                            stroke="blue"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                    </svg>
-                                </a>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Link join</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </template>
-                <template v-else>
-                    <div class="text-blue-500">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="5"
-                                        class="h-5 w-5 text-blue-500"
-                                    >
-                                        <path
-                                            d="M10.0464 14C8.54044 12.4882 8.67609 9.90087 10.3494 8.22108L15.197 3.35462C16.8703 1.67483 19.4476 1.53865 20.9536 3.05046C22.4596 4.56228 22.3239 7.14956 20.6506 8.82935L18.2268 11.2626"
-                                            stroke="#1C274C"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                        <path
-                                            d="M13.9536 10C15.4596 11.5118 15.3239 14.0991 13.6506 15.7789L11.2268 18.2121L8.80299 20.6454C7.12969 22.3252 4.55237 22.4613 3.0464 20.9495C1.54043 19.4377 1.67609 16.8504 3.34939 15.1706L5.77323 12.7373"
-                                            stroke="#1C274C"
-                                            stroke-width="1.5"
-                                            stroke-linecap="round"
-                                        />
-                                    </svg>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Meeting sudah berakhir</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                </template>
-            </div>
-        </div>
-        <div class="ml-4">
-            <Pagination
-                v-if="all_meetings.data.meetings.length > 6"
-                v-slot="{ page }"
-                :total="all_meetings.data.meetings.length"
-                :items-per-page="itemsPerPage"
-                :sibling-count="1"
-                show-edges
-                :default-page="1"
-                @update:page="currentPage = $event"
-            >
-                <PaginationList
-                    v-slot="{ items }"
-                    class="flex items-center gap-1"
-                >
-                    <PaginationFirst />
-                    <PaginationPrev />
-
-                    <template v-for="(item, index) in items">
-                        <PaginationListItem
-                            v-if="item.type === 'page'"
-                            :key="index"
-                            :value="item.value"
-                            as-child
-                        >
-                            <Button
-                                class="w-10 h-10 p-0"
-                                :variant="
-                                    item.value === page ? 'default' : 'outline'
-                                "
-                            >
-                                {{ item.value }}
-                            </Button>
-                        </PaginationListItem>
-                        <PaginationEllipsis
-                            v-else
-                            :key="item.type"
-                            :index="index"
-                        />
-                    </template>
-
-                    <PaginationNext />
-                    <PaginationLast />
-                </PaginationList>
-            </Pagination>
-        </div>
-    </div>
+        </DialogContent>
+    </Dialog>
 </template>

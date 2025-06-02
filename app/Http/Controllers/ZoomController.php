@@ -20,6 +20,8 @@ class ZoomController extends Controller
         $live_meetings = Zoom::getLiveMeeting();
         $all_meetings = Zoom::getAllMeeting();
 
+        // dd($upcoming_meetings);
+
         $meetings = ZoomModel::with('user')->orderBy('created_at', 'desc')->get();
         
         // dd($all_meetings, $upcoming_meetings, $previous_meetings, $live_meetings);

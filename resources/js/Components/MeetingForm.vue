@@ -80,73 +80,54 @@ function submit() {
     <form @submit.prevent="submit">
         <div class="grid w-full max-w-5xl items-center gap-1.5">
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="topic" class="text-sm min-w-[150px]"
-                    >Topik Meeting</Label
-                >
-                <Input
-                    id="topic"
-                    v-model="form.topic"
-                    type="text"
-                    placeholder="Topik Meeting"
-                    class="flex-grow"
-                    required
-                />
+                <Label for="topic" class="text-sm min-w-[150px]">Topik Meeting</Label>
+                <Input id="topic" v-model="form.topic" type="text" placeholder="Topik Meeting" class="flex-grow"
+                    required />
             </div>
             <div class="flex items-center gap-6 flex-nowrap mb-5">
                 <Label for="date" class="text-sm min-w-[150px]">Waktu</Label>
                 <Popover>
                     <PopoverTrigger as-child>
-                        <Button
-                            variant="outline"
-                            :class="
-                                cn(
-                                    'w-[280px] justify-start text-left font-normal',
-                                    !value && 'text-muted-foreground'
-                                )
-                            "
-                        >
+                        <Button variant="outline" :class="cn(
+        'w-[280px] justify-start text-left font-normal',
+        !value && 'text-muted-foreground'
+    )
+        ">
                             <CalendarIcon class="mr-2 h-4 w-4" />
                             <template v-if="value.start">
                                 <template v-if="value.end">
                                     {{
-                                        df.format(
-                                            value.start.toDate(
-                                                getLocalTimeZone()
-                                            )
-                                        )
-                                    }}
+        df.format(
+            value.start.toDate(
+                getLocalTimeZone()
+            )
+        )
+    }}
                                     -
                                     {{
-                                        df.format(
-                                            value.end.toDate(getLocalTimeZone())
-                                        )
-                                    }}
+            df.format(
+                value.end.toDate(getLocalTimeZone())
+            )
+        }}
                                 </template>
 
                                 <template v-else>
                                     {{
-                                        df.format(
-                                            value.start.toDate(
-                                                getLocalTimeZone()
-                                            )
-                                        )
-                                    }}
+            df.format(
+                value.start.toDate(
+                    getLocalTimeZone()
+                )
+            )
+        }}
                                 </template>
                             </template>
                             <template v-else> Pick a date </template>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent class="w-auto p-0">
-                        <RangeCalendar
-                            v-model:placeholder="placeholder"
-                            v-model="value"
-                            initial-focus
-                            :number-of-months="1"
-                            :min-value="currentDate"
-                            @update:start-value="
-                                (startDate) => (value.start = startDate)
-                            "
-                        />
+                        <RangeCalendar v-model:placeholder="placeholder" v-model="value" initial-focus
+                            :number-of-months="1" :min-value="currentDate" @update:start-value="(startDate) => (value.start = startDate)
+        " />
                     </PopoverContent>
                 </Popover>
                 <Select id="time" v-model="form.time" required>
@@ -196,74 +177,31 @@ function submit() {
             </div>
 
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="duration" class="text-sm min-w-[150px]"
-                    >Durasi Meeting (Jam)</Label
-                >
-                <Input
-                    id="duration"
-                    v-model="form.duration"
-                    type="number"
-                    min="1"
-                    max="24"
-                    required
-                    placeholder="Durasi Meeting"
-                    pattern="[0-9]*"
-                    class="flex-grow"
-                    @input="validateNumericInput"
-                />
+                <Label for="duration" class="text-sm min-w-[150px]">Durasi Meeting (Jam)</Label>
+                <Input id="duration" v-model="form.duration" type="number" min="1" max="24" required
+                    placeholder="Durasi Meeting" pattern="[0-9]*" class="flex-grow" @input="validateNumericInput" />
             </div>
 
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="password" class="text-sm min-w-[150px]"
-                    >Password</Label
-                >
-                <Input
-                    id="password"
-                    v-model="form.password"
-                    required
-                    type="text"
-                    placeholder="Password"
-                    class="flex-grow"
-                    maxlength="10"
-                />
+                <Label for="password" class="text-sm min-w-[150px]">Password</Label>
+                <Input id="password" v-model="form.password" required type="text" placeholder="Password"
+                    class="flex-grow" maxlength="10" />
             </div>
 
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="participant" class="text-sm min-w-[150px]"
-                    >Jumlah Peserta</Label
-                >
-                <Input
-                    id="participant"
-                    v-model="form.participant"
-                    type="number"
-                    min="1"
-                    max="100"
-                    required
-                    placeholder="Jumlah Peserta"
-                    pattern="[0-9]*"
-                    class="flex-grow"
-                    @input="validateNumericInput"
-                />
+                <Label for="participant" class="text-sm min-w-[150px]">Jumlah Peserta</Label>
+                <Input id="participant" v-model="form.participant" type="number" min="1" max="100" required
+                    placeholder="Jumlah Peserta" pattern="[0-9]*" class="flex-grow" @input="validateNumericInput" />
             </div>
 
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="host" class="text-sm min-w-[150px]"
-                    >Petugas Co-Host</Label
-                >
-                <Input
-                    id="host"
-                    v-model="form.host"
-                    type="text"
-                    required
-                    placeholder="Petugas Co-Host"
-                    class="flex-grow"
-                />
+                <Label for="host" class="text-sm min-w-[150px]">Petugas Co-Host</Label>
+                <Input id="host" v-model="form.host" type="text" required placeholder="Petugas Co-Host"
+                    class="flex-grow" />
             </div>
 
             <div class="flex items-center gap-6 flex-nowrap mb-5">
-                <Label for="bidang" class="text-sm min-w-[150px]"
-                    >Fungsi/Bagian</Label
-                >
+                <Label for="bidang" class="text-sm min-w-[150px]">Fungsi/Bagian</Label>
                 <Select id="bidang" v-model="form.bidang" required>
                     <SelectTrigger>
                         <SelectValue placeholder="Fungsi/Bagian" />
